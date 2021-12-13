@@ -22,6 +22,10 @@ import Cocoa
 
 open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
 {
+    public var cornerRadius: CGFloat = 10
+    public var roundedCorners: UIRectCorner = []
+    public var isRoundEveryStack: Bool = false
+
     /// A nested array of elements ordered logically (i.e not in visual/drawing order) for use with VoiceOver
     ///
     /// Its use is apparent when there are multiple data sets, since we want to read bars in left to right order,
@@ -430,8 +434,20 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 // Set the color for the currently drawn value. If the index is out of bounds, reuse colors.
                 context.setFillColor(dataSet.color(atIndex: j).cgColor)
             }
-            
-            context.fill(barRect)
+
+            if roundedCorners.isEmpty {
+                context.fill(barRect)
+            } else {
+                if isRoundEveryStack || j % stackSize == 0 {
+                    let path = UIBezierPath(roundedRect: barRect,
+                                            byRoundingCorners: roundedCorners,
+                                            cornerRadii: CGSize(width: cornerRadius, height: cornerRadius))
+                    context.addPath(path.cgPath)
+                    context.fillPath()
+                } else {
+                    context.fill(barRect)
+                }
+            }
             
             if drawBorder
             {
